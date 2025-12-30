@@ -5,11 +5,12 @@ from typing import Optional
 
 import typer
 
-from .align import PredWord, align_words
-from .edit_distance import edit_counts
+from .align import AlignedWord, PredWord, align_words
+from .edit_distance import edit_counts, levenshtein_ops
 from .g2p import G2POptions, g2p_words
 from .audio import ffmpeg_available
 from .ipa_tokenize import split_reference_words
+from .ipa_tokenize import tokenize_ipa
 from .report import write_html, write_json
 from .schemas import (
     AssessmentMetrics,
@@ -60,6 +61,14 @@ def _configure_warnings() -> None:
         message=r"Whisper did not predict an ending timestamp.*",
         category=Warning,
     )
+
+    # Transformers often emits these as logs, not warnings.
+    try:  # pragma: no cover
+        from transformers.utils import logging as hf_logging  # type: ignore[import-not-found]
+
+        hf_logging.set_verbosity_error()
+    except Exception:
+        pass
 
 
 def _ensure_parent(path: str | Path | None) -> None:
@@ -188,7 +197,27 @@ def assess(
     expected_ipa_words = g2p_words(ref_words, g_opts)
 
     # 4) Align
-    aligned = align_words(ref_words, expected_ipa_words, pred_words)
+    # If the timestamp chunking doesn't match reference word granularity (common in some audio),
+    # fall back to utterance-level alignment for a meaningful PER + substitution summary.
+    if len(pred_words) < max(5, len(ref_words) // 2):
+        expected_full = " ".join(expected_ipa_words)
+        predicted_full = transcription.ipa_text
+        ops = levenshtein_ops(tokenize_ipa(expected_full), tokenize_ipa(predicted_full))
+        start = pred_words[0].start if pred_words else None
+        end = pred_words[-1].end if pred_words else None
+        aligned = [
+            AlignedWord(
+                index=0,
+                reference_word="(full utterance)",
+                expected_ipa=expected_full,
+                predicted_ipa=predicted_full,
+                start=start,
+                end=end,
+                phoneme_ops=ops,
+            )
+        ]
+    else:
+        aligned = align_words(ref_words, expected_ipa_words, pred_words)
 
     # 5) Metrics + summaries
     all_ops = []

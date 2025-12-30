@@ -113,10 +113,17 @@ _ARPABET_TO_IPA = {
 def _arpabet_pron_to_ipa(pron: str) -> str:
     phones: list[str] = []
     for part in pron.split():
-        base = part.rstrip("012")  # ignore stress digits
+        stress = None
+        if part and part[-1] in "012":
+            stress = part[-1]
+        base = part.rstrip("012")
         ipa = _ARPABET_TO_IPA.get(base)
         if ipa is None:
             continue
+        if stress == "1":
+            phones.append("ˈ")
+        elif stress == "2":
+            phones.append("ˌ")
         phones.append(ipa)
     return "".join(phones)
 
@@ -139,4 +146,3 @@ def _g2p_cmudict(words: list[str], lex: dict[str, str]) -> list[str]:
             continue
         out.append(_arpabet_pron_to_ipa(prons[0]))
     return out
-

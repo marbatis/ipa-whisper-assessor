@@ -48,6 +48,8 @@ def write_html(result: AssessmentResult, path: str | Path) -> None:
             "</tr>"
         )
 
+    mistake_body = "".join(mistake_rows) or "<tr><td colspan='4'>(none)</td></tr>"
+
     html_doc = f"""<!doctype html>
 <html>
 <head>
@@ -93,11 +95,10 @@ def write_html(result: AssessmentResult, path: str | Path) -> None:
       <tr><th>Rule</th><th>Expected</th><th>Predicted</th><th>Count</th></tr>
     </thead>
     <tbody>
-      {''.join(mistake_rows) or '<tr><td colspan=\"4\">(none)</td></tr>'}
+      {mistake_body}
     </tbody>
   </table>
 </body>
 </html>
 """
     Path(path).write_text(html_doc, encoding="utf-8")
-

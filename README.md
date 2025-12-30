@@ -15,11 +15,13 @@ Prereqs:
 - `ffmpeg` (recommended, used for broad audio support)
 
 ```bash
-python -m venv .venv
+python3 -m venv .venv
 source .venv/bin/activate
 pip install -U pip
 pip install -e ".[transcribe,espeak,cmudict,dev]"
 ```
+
+If `python` isn’t on your PATH (common on macOS), use `python3` as above (or `alias python=python3`).
 
 Notes:
 

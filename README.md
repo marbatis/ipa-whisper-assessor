@@ -30,6 +30,12 @@ Notes:
 
 ## CLI
 
+### Quick environment check
+
+```bash
+ipa-assess doctor
+```
+
 ### Transcribe
 
 ```bash

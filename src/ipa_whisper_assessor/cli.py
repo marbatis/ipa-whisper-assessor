@@ -8,6 +8,7 @@ import typer
 from .align import PredWord, align_words
 from .edit_distance import edit_counts
 from .g2p import G2POptions, g2p_words
+from .audio import ffmpeg_available
 from .ipa_tokenize import split_reference_words
 from .report import write_html, write_json
 from .schemas import (
@@ -35,6 +36,54 @@ def _ensure_parent(path: str | Path | None) -> None:
     p = Path(path)
     if p.parent and not p.parent.exists():
         p.parent.mkdir(parents=True, exist_ok=True)
+
+
+@app.command()
+def doctor() -> None:
+    """
+    Print a quick environment diagnostic (useful for macOS/MPS setup).
+    """
+    import platform
+    import shutil
+    import sys
+
+    typer.echo(f"python: {sys.version.split()[0]}")
+    typer.echo(f"platform: {platform.platform()}")
+    typer.echo(f"ffmpeg: {'yes' if ffmpeg_available() else 'no'}")
+
+    try:
+        import torch  # type: ignore[import-not-found]
+
+        typer.echo(f"torch: {getattr(torch, '__version__', '?')}")
+        typer.echo(f"torch.cuda.is_available: {torch.cuda.is_available()}")
+        mps_ok = hasattr(torch.backends, "mps") and torch.backends.mps.is_available()  # type: ignore[attr-defined]
+        typer.echo(f"torch.backends.mps.is_available: {mps_ok}")
+    except Exception as e:
+        typer.echo(f"torch: not importable ({type(e).__name__})")
+
+    try:
+        import transformers  # type: ignore[import-not-found]
+
+        typer.echo(f"transformers: {getattr(transformers, '__version__', '?')}")
+    except Exception as e:
+        typer.echo(f"transformers: not importable ({type(e).__name__})")
+
+    espeak = shutil.which("espeak-ng") or shutil.which("espeak")
+    typer.echo(f"espeak-ng: {'yes' if espeak else 'no'}")
+
+    try:
+        import phonemizer  # type: ignore[import-not-found]
+
+        typer.echo(f"phonemizer: {getattr(phonemizer, '__version__', '?')}")
+    except Exception:
+        typer.echo("phonemizer: not installed (optional, for --g2p espeak)")
+
+    try:
+        import pronouncing  # type: ignore[import-not-found]
+
+        typer.echo(f"pronouncing: {getattr(pronouncing, '__version__', '?')}")
+    except Exception:
+        typer.echo("pronouncing: not installed (optional, for --g2p cmudict)")
 
 
 @app.command()

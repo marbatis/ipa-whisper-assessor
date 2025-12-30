@@ -22,7 +22,11 @@ from .score import apply_default_mistake_rules, substitution_histogram
 from .transcribe import MODEL_ID, TranscribeOptions, transcribe_audio
 
 
-app = typer.Typer(add_completion=False, help="IPA transcription + pronunciation assessment (offline).")
+app = typer.Typer(
+    add_completion=False,
+    help="IPA transcription + pronunciation assessment (offline).",
+    pretty_exceptions_show_locals=False,
+)
 
 
 def _ensure_parent(path: str | Path | None) -> None:
@@ -195,4 +199,3 @@ def batch(
             model=model,
             espeak_language="en-us",
         )
-

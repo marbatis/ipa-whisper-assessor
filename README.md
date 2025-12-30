@@ -56,6 +56,8 @@ ipa-assess batch data/ --ref-csv references.csv --out-dir outputs/
 
 Use `--device auto` (default) or explicitly choose: `cpu`, `cuda`, `mps`.
 
+On Apple Silicon (like your M3), `--device auto` should select `mps`. If you hit device issues, run with `--device mps`.
+
 ## G2P backends
 
 - `--g2p espeak`: uses the `phonemizer` package + `espeak-ng` installed on your system.

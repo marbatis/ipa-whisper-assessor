@@ -22,7 +22,17 @@ class TranscribeOptions:
 
 def _resolve_device(device: Device) -> int | str:
     if device == "auto":
-        return "auto"
+        try:
+            import torch  # type: ignore[import-not-found]
+        except Exception:
+            # If torch isn't installed, the pipeline creation will fail anyway; default to CPU.
+            return -1
+
+        if torch.cuda.is_available():
+            return 0
+        if hasattr(torch.backends, "mps") and torch.backends.mps.is_available():  # type: ignore[attr-defined]
+            return "mps"
+        return -1
     if device == "cpu":
         return -1
     if device == "cuda":
@@ -96,4 +106,3 @@ def transcribe_audio(audio_path: str, options: TranscribeOptions) -> Transcripti
         )
 
     return TranscriptionResult(audio_path=audio_path, model=options.model, ipa_text=ipa_text, ipa_words=words)
-

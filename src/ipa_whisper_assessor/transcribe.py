@@ -62,6 +62,7 @@ def _get_pipeline(model_id: str, device: Device, chunk_length_s: int):
         model=model_id,
         chunk_length_s=chunk_length_s,
         device=_resolve_device(device),
+        ignore_warning=True,
     )
 
     # Model-card-recommended settings for IPA mode.

@@ -1,0 +1,44 @@
+[build-system]
+requires = ["hatchling>=1.24.2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ipa-whisper-assessor"
+version = "0.1.0"
+description = "Offline IPA transcription + scripted pronunciation error detection using neurlang/ipa-whisper-small."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "Apache-2.0" }
+authors = [{ name = "marbatis" }]
+dependencies = [
+  "pydantic>=2.7",
+  "pyyaml>=6.0",
+  "typer>=0.12",
+]
+
+[project.optional-dependencies]
+transcribe = [
+  "numpy>=1.23",
+  "soundfile>=0.12",
+  "torch>=2.1",
+  "transformers>=4.41",
+]
+espeak = ["phonemizer>=3.2"]
+cmudict = ["pronouncing>=0.2.0"]
+g2p = ["phonemizer>=3.2", "pronouncing>=0.2.0"]
+dev = [
+  "pytest>=7.4",
+  "ruff>=0.5",
+]
+
+[project.scripts]
+ipa-assess = "ipa_whisper_assessor.cli:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ipa_whisper_assessor"]
+
+[tool.ruff]
+line-length = 100
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

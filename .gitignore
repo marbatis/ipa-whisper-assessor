@@ -1,0 +1,15 @@
+.DS_Store
+.idea/
+.vscode/
+.venv/
+dist/
+build/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+outputs/
+*.wav
+*.mp3
+*.m4a
+

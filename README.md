@@ -42,6 +42,8 @@ ipa-assess doctor
 ipa-assess transcribe path/to/audio.wav --out-json outputs/transcription.json --timestamps word
 ```
 
+To see all underlying library warnings, set `IPA_ASSESS_SHOW_WARNINGS=1`.
+
 ### Assess (scripted)
 
 ```bash

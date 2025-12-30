@@ -30,6 +30,38 @@ app = typer.Typer(
 )
 
 
+def _configure_warnings() -> None:
+    """
+    Suppress known noisy warnings (set `IPA_ASSESS_SHOW_WARNINGS=1` to keep them).
+    """
+    import os
+    import warnings
+
+    if os.environ.get("IPA_ASSESS_SHOW_WARNINGS", "").strip().lower() in {"1", "true", "yes"}:
+        return
+
+    warnings.filterwarnings(
+        "ignore",
+        message=r"urllib3 v2 only supports OpenSSL .*",
+        category=Warning,
+    )
+    warnings.filterwarnings(
+        "ignore",
+        message=r"Using custom `forced_decoder_ids` from the \(generation\) config\..*",
+        category=Warning,
+    )
+    warnings.filterwarnings(
+        "ignore",
+        message=r"Transcription using a multilingual Whisper will default to language detection.*",
+        category=Warning,
+    )
+    warnings.filterwarnings(
+        "ignore",
+        message=r"Whisper did not predict an ending timestamp.*",
+        category=Warning,
+    )
+
+
 def _ensure_parent(path: str | Path | None) -> None:
     if not path:
         return
@@ -96,6 +128,7 @@ def transcribe(
     chunk_length: int = typer.Option(30, "--chunk-length", help="Chunk length in seconds (long-form)."),
     model: str = typer.Option(MODEL_ID, "--model", help="HF model id."),
 ) -> None:
+    _configure_warnings()
     ts = None
     if timestamps:
         if timestamps not in {"word", "chunk"}:
@@ -129,6 +162,7 @@ def assess(
     model: str = typer.Option(MODEL_ID, "--model", help="HF model id."),
     espeak_language: str = typer.Option("en-us", "--espeak-language", help="eSpeak language (espeak backend)."),
 ) -> None:
+    _configure_warnings()
     if timestamps not in {"word", "chunk"}:
         raise typer.BadParameter("--timestamps must be 'word' or 'chunk'")
     if g2p not in {"espeak", "cmudict"}:
@@ -217,6 +251,7 @@ def batch(
     device: str = typer.Option("auto", "--device", help="auto|cpu|cuda|mps"),
     model: str = typer.Option(MODEL_ID, "--model", help="HF model id."),
 ) -> None:
+    _configure_warnings()
     import csv
 
     folder_p = Path(folder)

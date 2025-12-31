@@ -54,6 +54,17 @@ ipa-assess assess path/to/audio.wav \
   --out-html outputs/report.html
 ```
 
+If you already ran `transcribe` and want to avoid re-running the model, reuse the JSON:
+
+```bash
+ipa-assess assess path/to/audio.wav \
+  --reference "The zebra is in the zoo." \
+  --g2p cmudict \
+  --transcription-json outputs/transcription.json \
+  --out-json outputs/report.json \
+  --out-html outputs/report.html
+```
+
 ### Batch folder
 
 ```bash

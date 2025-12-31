@@ -62,14 +62,6 @@ def _configure_warnings() -> None:
         category=Warning,
     )
 
-    # Transformers often emits these as logs, not warnings.
-    try:  # pragma: no cover
-        from transformers.utils import logging as hf_logging  # type: ignore[import-not-found]
-
-        hf_logging.set_verbosity_error()
-    except Exception:
-        pass
-
 
 def _ensure_parent(path: str | Path | None) -> None:
     if not path:
@@ -163,6 +155,11 @@ def assess(
     reference: str = typer.Option(..., "--reference", help="Reference text (script)."),
     g2p: str = typer.Option("espeak", "--g2p", help="espeak|cmudict"),
     lexicon: Optional[str] = typer.Option(None, "--lexicon", help="YAML/JSON word->IPA overrides."),
+    transcription_json: Optional[str] = typer.Option(
+        None,
+        "--transcription-json",
+        help="Use an existing transcription JSON from `ipa-assess transcribe` (skips model inference).",
+    ),
     out_json: str = typer.Option(..., "--out-json", help="Write JSON report."),
     out_html: Optional[str] = typer.Option(None, "--out-html", help="Write HTML report."),
     timestamps: str = typer.Option("word", "--timestamps", help="word|chunk (recommended: word)"),
@@ -177,11 +174,16 @@ def assess(
     if g2p not in {"espeak", "cmudict"}:
         raise typer.BadParameter("--g2p must be 'espeak' or 'cmudict'")
 
-    # 1) Transcribe
-    t_opts = TranscribeOptions(
-        model=model, device=device, chunk_length_s=chunk_length, timestamps=timestamps  # type: ignore[arg-type]
-    )
-    transcription: TranscriptionResult = transcribe_audio(audio, t_opts)
+    # 1) Transcribe (or load from JSON)
+    if transcription_json:
+        transcription = TranscriptionResult.model_validate_json(
+            Path(transcription_json).read_text(encoding="utf-8")
+        )
+    else:
+        t_opts = TranscribeOptions(
+            model=model, device=device, chunk_length_s=chunk_length, timestamps=timestamps  # type: ignore[arg-type]
+        )
+        transcription = transcribe_audio(audio, t_opts)
 
     # 2) Build predicted word list
     pred_words = [
